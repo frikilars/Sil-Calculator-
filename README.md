@@ -40,9 +40,9 @@ Menampilkan ekspresi lengkap dan hasilnya
 
 Dilengkapi tombol Hapus Semua Histori
 
-6. Kontrol via Keyboard: Semua tombol dapat diakses menggunakan keyboard
+5. Kontrol via Keyboard: Semua tombol dapat diakses menggunakan keyboard
    
-7. Proteksi Error
+6. Proteksi Error
 Tidak bisa memasukkan desimal ganda
 
 Handling pembagian nol
@@ -51,7 +51,7 @@ Notifikasi error saat ekspresi tidak valid
 
 CE, C, dan backspace berfungsi normal
 
-9. Tampilan Modern & Responsif
+7. Tampilan Modern & Responsif
 Menggunakan Tailwind CSS
 
 Layout adaptif (mobile — tablet — desktop)
