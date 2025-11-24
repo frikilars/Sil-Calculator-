@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sil Calculator - Blue Soft (Memory & History)</title>
+    <style>
+        :root{
+            --bg: #d6e6ff;
+            --panel: #f4f7ff;
+            --accent: #7da5ff;
+            --muted: #c3d5ff;
+            --btn: #e9f0ff;
+            --black: #0b1330;
+            --error-bg: #ffd6d6;
+            --error-text: #8b0000;
+        }
+
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            min-height:100vh;
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding:28px;
+            color:var(--black);
+        }
+
+       
+        .layout{
+            display:flex;
+            gap:18px;
+            width:100%;
+            max-width:980px;
+        }
+
+       
+        .calc-col{
+            flex:0 0 640px;
+        }
+
+        .calculator{
+            background:var(--panel);
+            border-radius:16px;
+            padding:18px;
+            border:1px solid var(--muted);
+            box-shadow:0 8px 20px rgba(5,20,60,0.08);
+        }
+
+        .title{
+            text-align:center;
+            font-size:22px;
+            font-weight:700;
+            color:#1a3d7c;
+            margin-bottom:12px;
+        }
+
+        
+        .display-wrap{
+            background:white;
+            border-radius:12px;
+            padding:12px 14px;
+            border:1px solid #d0e0ff;
+            margin-bottom:10px;
+        }
+
+        .display-expression{
+            font-size:14px;
+            color:#38507f;
+            text-align:right;
+            min-height:18px;
+            opacity:0.85;
+        }
+
+        .display-main{
+            font-size:40px;
+            font-weight:800;
+            text-align:right;
+            color:black;
+            margin-top:6px;
+            word-break:break-all;
+        }
+
+        
+        .error-notif{
+            display:none;
+            margin-top:10px;
+            padding:8px 10px;
+            border-radius:8px;
+            background:var(--error-bg);
+            color:var(--error-text);
+            font-weight:700;
+            border:1px solid rgba(139,0,0,0.12);
+        }
+
+        
+        .memory-box{
+            background:white;
+            border-radius:10px;
+            padding:10px 12px;
+            margin-top:12px;
+            margin-bottom:8px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            border:1px solid #dbeaff;
+            box-shadow:0 3px 10px rgba(10,30,80,0.04);
+            font-weight:700;
+        }
+
+        .memory-box .label{ color:#6b7ea8; font-size:14px; opacity:0.9 }
+        .memory-box .value{ font-size:18px; color:black }
+
+        /* memory buttons row (MR MC M+ M-) */
+        .memory-row{
+            display:flex;
+            gap:8px;
+            margin-bottom:12px;
+        }
+        .memory-row button{
+            flex:1;
+            padding:10px 8px;
+            border-radius:10px;
+            border:1px solid #c5d7ff;
+            background:var(--btn);
+            font-weight:800;
+            color: black;
+            cursor:pointer;
+        }
+        .memory-row button:hover{ background:#d2e2ff }
+
+        
+        .buttons{
+            display:grid;
+            grid-template-columns: repeat(4,1fr);
+            gap:12px;
+            margin-top:6px;
+        }
+        .btn{
+            padding:16px;
+            border-radius:12px;
+            border:1px solid #c5d7ff;
+            background:var(--btn);
+            font-size:18px;
+            font-weight:800;
+            color:black;
+            cursor:pointer;
+            transition: transform .12s ease, box-shadow .12s;
+        }
+        .btn:active{ transform: translateY(2px) }
+        .btn:hover{ box-shadow: 0 6px 18px rgba(30,80,160,0.08) }
+
+        .btn.operator{ background:#d0ddff }
+        .btn.clear{ background:#ffb3b3 }
+        .btn.ce{ background:#ffe0b3 }
+        .btn.equals{
+            grid-column: span 2;
+            background:#bcd4ff;
+            font-size:20px;
+        }
+
+      
+        .history-col{
+            flex:0 0 260px;
+        }
+        .history-panel{
+            background:var(--panel);
+            border-radius:14px;
+            padding:14px;
+            border:1px solid var(--muted);
+            box-shadow:0 6px 16px rgba(8,30,80,0.06);
+            height:100%;
+            max-height:520px;
+            overflow-y:auto;
+        }
+        .history-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:12px;
+        }
+        .history-title{ font-size:18px; font-weight:800; color:#1a3d7c }
+        .history-clear{
+            background:var(--accent);
+            color:white;
+            border:none;
+            padding:8px 10px;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:700;
+        }
+        .history-list{ display:flex; flex-direction:column; gap:10px; margin-top:8px }
+        .history-item{
+            background:white;
+            padding:8px 10px;
+            border-radius:8px;
+            border-left:4px solid var(--accent);
+            font-weight:700;
+        }
+
+        .empty-history{
+            text-align:center;
+            opacity:0.6;
+            padding:18px;
+            font-style:italic;
+        }
+
+        
+        .toast {
+            display: none; 
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            background: #ff4c4c;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 300ms ease, transform 300ms ease;
+            pointer-events: none;
+            z-index: 9999;
+            font-weight:700;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        
+        @media (max-width:920px){
+            .layout{ flex-direction:column; align-items:center }
+            .calc-col{ width:100%; max-width:720px }
+            .history-col{ width:100%; max-width:720px }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <div class="calc-col">
+        <div class="calculator">
+            <div class="title">Sil Calculator</div>
+
+            <div class="display-wrap">
+                <div id="displayExpression" class="display-expression"></div>
+                <div id="displayMain" class="display-main">0</div>
+            </div>
+
+            <div id="errorNotif" class="error-notif" role="alert" aria-live="assertive"></div>
+
+            <div class="memory-box" aria-hidden="false">
+                <div class="label">Memory</div>
+                <div id="memoryIndicator" class="value">0</div>
+            </div>
+
+            <div class="memory-row" role="group" aria-label="Memory controls">
+                <button class="btn-memory" onclick="memoryRecall()">MR</button>
+                <button class="btn-memory" onclick="memoryClear()">MC</button>
+                <button class="btn-memory" onclick="memoryAdd()">M+</button>
+                <button class="btn-memory" onclick="memorySubtract()">M-</button>
+            </div>
+
+            <div class="buttons" role="grid" aria-label="Calculator buttons">
+                <button class="btn clear" onclick="clearAll()">C</button>
+                <button class="btn ce" onclick="clearEntry()">CE</button>
+                <button class="btn operator" onclick="inputOperator('/')">÷</button>
+                <button class="btn operator" onclick="inputOperator('*')">×</button>
+
+                <button class="btn" onclick="inputNumber('7')">7</button>
+                <button class="btn" onclick="inputNumber('8')">8</button>
+                <button class="btn" onclick="inputNumber('9')">9</button>
+                <button class="btn operator" onclick="inputOperator('-')">-</button>
+
+                <button class="btn" onclick="inputNumber('4')">4</button>
+                <button class="btn" onclick="inputNumber('5')">5</button>
+                <button class="btn" onclick="inputNumber('6')">6</button>
+                <button class="btn operator" onclick="inputOperator('+')">+</button>
+
+                <button class="btn" onclick="inputNumber('1')">1</button>
+                <button class="btn" onclick="inputNumber('2')">2</button>
+                <button class="btn" onclick="inputNumber('3')">3</button>
+                <button class="btn equals" onclick="calculate()">=</button>
+
+                <button class="btn" onclick="inputNumber('0')">0</button>
+                <button class="btn" onclick="inputDecimal()">.</button>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-col">
+        <div class="history-panel">
+            <div class="history-header">
+                <div class="history-title">History</div>
+                <button class="history-clear" onclick="clearHistory()">Clear</button>
+            </div>
+
+            <div id="historyList" class="history-list">
+                <div class="empty-history">No history yet</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+    // State
+    let expression = '';
+    let currentNumber = '0';
+    let memory = 0;
+    let history = [];
+    const MAX_HISTORY = 8;
+
+    // Elements
+    const displayMain = document.getElementById('displayMain');
+    const displayExpression = document.getElementById('displayExpression');
+    const memoryIndicator = document.getElementById('memoryIndicator');
+    const errorNotif = document.getElementById('errorNotif');
+    const historyList = document.getElementById('historyList');
+    
+    function showAlertError(msg) {
+        setTimeout(() => {
+            alert('Error: ' + msg);
+        }, 0);
+    }
+
+    function showErrorInline(msg) {
+        errorNotif.textContent = msg;
+        errorNotif.style.display = 'block';
+        clearTimeout(showErrorInline._t);
+        showErrorInline._t = setTimeout(() => {
+            errorNotif.style.display = 'none';
+        }, 2500);
+    }
+
+    function updateDisplay() {
+        displayMain.textContent = currentNumber;
+        displayExpression.textContent = expression.replace(/\*/g, '×').replace(/\//g, '÷');
+    }
+
+    function updateMemoryIndicator() {
+        memoryIndicator.textContent = String(memory);
+    }
+
+    function inputNumber(n) {
+        if (currentNumber === '0' || currentNumber === 'Error') {
+            currentNumber = n;
+        } else {
+            currentNumber += n;
+        }
+        updateDisplay();
+    }
+
+    function inputDecimal() {
+        if (currentNumber === 'Error') currentNumber = '0';
+        if (!currentNumber.includes('.')) currentNumber += '.';
+        updateDisplay();
+    }
+
+    function inputOperator(op) {
+        if (currentNumber === '' && expression.length > 0) {
+            expression = expression.slice(0, -1) + op;
+        } else {
+            expression += currentNumber + op;
+            currentNumber = '';
+        }
+        updateDisplay();
+    }
+
+    function clearAll() {
+        expression = '';
+        currentNumber = '0';
+        updateDisplay();
+    }
+
+    function clearEntry() {
+        currentNumber = '0';
+        updateDisplay();
+    }
+
+    function evaluateExpression(expr) {
+        expr = expr.replace(/\s+/g, '');
+
+        const tokens = [];
+        let num = '';
+        for (let i = 0; i < expr.length; i++) {
+            const ch = expr[i];
+            if ('+-*/'.includes(ch)) {
+                if (num === '' && (ch === '+' || ch === '-')) {
+                    num = ch;
+                } else {
+                    tokens.push(parseFloat(num));
+                    tokens.push(ch);
+                    num = '';
+                }
+            } else {
+                num += ch;
+            }
+        }
+        if (num !== '') tokens.push(parseFloat(num));
+
+        if (tokens.length === 0) throw new Error('Tidak ada input');
+
+        let i = 0;
+        while (i < tokens.length) {
+            if (tokens[i] === '*' || tokens[i] === '/') {
+                const op = tokens[i];
+                const a = tokens[i-1];
+                const b = tokens[i+1];
+                if (op === '/' && (b === 0 || b === -0)) throw new Error('Pembagian dengan nol');
+                const res = op === '*' ? a * b : a / b;
+                tokens.splice(i-1, 3, res);
+                i = Math.max(i-1, 0);
+            } else i++;
+        }
+
+        i = 0;
+        while (i < tokens.length) {
+            if (tokens[i] === '+' || tokens[i] === '-') {
+                const op = tokens[i];
+                const a = tokens[i-1];
+                const b = tokens[i+1];
+                const res = op === '+' ? a + b : a - b;
+                tokens.splice(i-1, 3, res);
+                i = Math.max(i-1, 0);
+            } else i++;
+        }
+
+        if (tokens.length !== 1) throw new Error('Ekspresi tidak valid');
+        return tokens[0];
+    }
+
+    function calculate() {
+        const full = expression + currentNumber;
+        if (!full) return;
+        try {
+            const result = evaluateExpression(full);
+
+            if (!isFinite(result)) throw new Error('Hasil tidak valid');
+
+            const rounded = Math.round(result * 1e12) / 1e12;
+            addToHistory(full.replace(/\*/g, '×').replace(/\//g, '÷'), rounded);
+            currentNumber = String(rounded);
+            expression = '';
+            updateDisplay();
+        } catch (err) {
+            currentNumber = 'Error';
+            updateDisplay();
+            
+            let errorMessage = err.message || 'Perhitungan error';
+            if (errorMessage === 'Pembagian dengan nol') {
+                errorMessage = 'Tidak bisa membagi dengan nol!'; 
+            }
+            showAlertError(errorMessage);
+            // ---------------------------------------------------
+        }
+    }
+
+    function addToHistory(expr, result) {
+        history.unshift({ expression: expr, result });
+        if (history.length > MAX_HISTORY) history.pop();
+        renderHistory();
+    }
+
+    function renderHistory() {
+        if (history.length === 0) {
+            historyList.innerHTML = '<div class="empty-history">No history yet</div>';
+            return;
+        }
+        historyList.innerHTML = history.map(h => `
+            <div class="history-item" title="${h.expression}">
+                <div style="font-size:13px;color:#38507f;opacity:0.95">${h.expression}</div>
+                <div style="font-size:16px;margin-top:6px">= <strong>${h.result}</strong></div>
+            </div>
+        `).join('');
+    }
+
+    function clearHistory() {
+        history = [];
+        renderHistory();
+    }
+
+    // Memory
+    function memoryAdd() {
+        const num = parseFloat(currentNumber);
+        if (isNaN(num)) {
+            showAlertError('Tidak dapat menambahkan: input bukan angka');
+            return;
+        }
+        memory = Math.round((memory + num) * 1e12) / 1e12;
+        updateMemoryIndicator();
+    }
+
+    function memorySubtract() {
+        const num = parseFloat(currentNumber);
+        if (isNaN(num)) {
+            showAlertError('Tidak dapat mengurangi: input bukan angka');
+            return;
+        }
+        memory = Math.round((memory - num) * 1e12) / 1e12;
+        updateMemoryIndicator();
+    }
+
+    function memoryRecall() {
+        currentNumber = String(memory);
+        expression = '';
+        updateDisplay();
+    }
+
+    function memoryClear() {
+        memory = 0;
+        updateMemoryIndicator();
+    }
+
+    updateDisplay();
+    updateMemoryIndicator();
+    renderHistory();
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.key >= '0' && e.key <= '9')) inputNumber(e.key);
+        else if (e.key === '.') inputDecimal();
+        else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') inputOperator(e.key);
+        else if (e.key === 'Enter') calculate();
+        else if (e.key === 'Backspace') {
+            if (currentNumber === 'Error') { currentNumber = '0'; updateDisplay(); return; }
+            currentNumber = currentNumber.slice(0, -1) || '0';
+            updateDisplay();
+        }
+        else if (e.key === 'Escape') clearAll();
+    });
+</script>
+
+</body>
+</html>
